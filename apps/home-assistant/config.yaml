@@ -1,0 +1,29 @@
+name: Pi Home Agent
+version: "0.1.0"
+slug: pi_home_agent
+description: A safe, coding-agent interface for administering Home Assistant.
+url: https://github.com/troydev/pi-ha-app
+image: ghcr.io/troydev/pi-home-agent
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+init: false
+ingress: true
+ingress_port: 8099
+ingress_stream: true
+panel_icon: mdi:robot-outline
+panel_title: Pi Home Agent
+homeassistant_api: true
+hassio_api: true
+hassio_role: manager
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+options:
+  log_level: info
+schema:
+  log_level: list(debug|info|warning|error)
+stage: stable

@@ -1,0 +1,13 @@
+node_modules/
+dist-server/
+dist-web/
+coverage/
+.local-data/
+.local-*
+.e2e-data/
+.e2e-config/
+.runtime-test/
+.ha-test/
+test-results/
+playwright-report/
+*.log

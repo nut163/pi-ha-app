@@ -1,0 +1,10 @@
+node_modules
+dist-server
+dist-web
+.git
+.runtime-test
+.ha-test
+tests
+docs
+coverage
+*.log
