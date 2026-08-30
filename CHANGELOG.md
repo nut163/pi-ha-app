@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Add provider model configuration and provider-specific model suggestions in onboarding and settings.
+
 ## 0.1.1
 
 - Fix asset and API URLs when the App is served through Home Assistant Ingress.
