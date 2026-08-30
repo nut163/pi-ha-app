@@ -93,5 +93,14 @@ h1, h2, h3, p { margin: 0; } h1, h2, h3, strong { font-family: "Space Grotesk", 
   .right-rail { overflow: visible; }
   .activity-panel { flex: none; max-height: 400px; }
 }
+
+.provider-settings-grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.provider-settings-grid label { margin: 0; }
+.model-field { display: flex; flex-direction: column; gap: 7px; }
+.provider-settings-grid .full { grid-column: 1 / -1; }
+.provider-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+.provider-result.compact { margin-top: 14px; }
+.model-discovery-status { min-height: 12px; }
+@media (max-width: 760px) { .provider-settings-grid { grid-template-columns: 1fr; } .provider-settings-grid .full { grid-column: auto; } }
 @media (max-width: 1000px) { .command-layout { grid-template-columns: minmax(0, 1fr); } .right-rail { display: grid; grid-template-columns: 1fr 1fr; } .activity-panel { max-height: 400px; } .health-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) { .onboarding-page { padding: 10px; } .onboarding-card { border-radius: 17px; padding: 23px; } .wizard-steps { gap: 4px; margin: 25px -23px 0; padding: 0 23px 17px; } .wizard-step small { display: none; } .wizard-step { flex: 1; } .wizard-step span { margin: auto; } .feature-grid, .summary-card, .form-grid, .settings-grid { grid-template-columns: 1fr; } .summary-card > div { border-bottom: 1px solid var(--line); border-right: 0; } .summary-card > div:last-child { border-bottom: 0; } .wizard-content { min-height: 0; padding-top: 28px; } .topbar { padding: 0 15px; } .mobile-menu { display: block; } .top-brand { margin-right: auto; margin-left: 9px; } .top-brand > div > span, .top-status .top-divider, .top-status > .status-dot, .top-status { font-size: 0; } .top-status .user-chip { font-size: 10px; } .sidebar { background: var(--bg); box-shadow: var(--shadow); left: 0; position: fixed; top: 64px; transform: translateX(-105%); transition: transform .2s ease; width: 254px; z-index: 9; } .sidebar.open { transform: translateX(0); } .main-content { padding: 15px; } .chat-panel { min-height: calc(100vh - 94px); } .chat-header, .message-scroll { padding-left: 17px; padding-right: 17px; } .starter-chips { padding-left: 17px; padding-right: 17px; } .composer-wrap { padding-left: 13px; padding-right: 13px; } .right-rail { display: flex; } .page-title-row { align-items: flex-start; flex-direction: column; gap: 14px; } .health-hero { align-items: flex-start; flex-direction: column; gap: 22px; } .hero-metrics > div { padding-left: 15px; } .health-grid { grid-template-columns: 1fr; } .audit-heading { align-items: flex-start; flex-wrap: wrap; } .audit-heading time { margin-left: 0; width: 100%; } .approval-toast { bottom: 13px; left: 13px; right: 13px; } }

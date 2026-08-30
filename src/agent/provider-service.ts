@@ -13,6 +13,7 @@ import type {
   ProviderConfig,
   ProviderConfigWithSecret,
   ProviderKind,
+  ProviderModelsResult,
   ProviderTestResult,
   StoredState,
 } from "../core/types.js";
@@ -57,10 +58,14 @@ export class ProviderService {
 
   public async save(config: ProviderConfigWithSecret): Promise<ProviderConfig> {
     const normalized = normalizeProvider(config);
-    validateProvider(normalized, config.apiKey);
-    if (config.apiKey) {
-      await this.options.secrets.set("provider.apiKey", config.apiKey);
-    } else if (normalized.kind !== "local") {
+    const existingSecret = config.apiKey === undefined
+      ? await this.options.secrets.get("provider.apiKey")
+      : undefined;
+    const effectiveSecret = config.apiKey?.trim() || existingSecret;
+    validateProvider(normalized, effectiveSecret);
+    if (config.apiKey?.trim()) {
+      await this.options.secrets.set("provider.apiKey", config.apiKey.trim());
+    } else if (config.apiKey !== undefined) {
       await this.options.secrets.delete("provider.apiKey");
     }
     await this.options.state.update((current) => ({
@@ -90,9 +95,12 @@ export class ProviderService {
 
   public async test(config: ProviderConfigWithSecret): Promise<ProviderTestResult> {
     const normalized = normalizeProvider(config);
+    const apiKey = config.apiKey === undefined
+      ? await this.options.secrets.get("provider.apiKey")
+      : config.apiKey;
     const checks: ProviderTestResult["checks"] = [];
     try {
-      validateProvider(normalized, config.apiKey);
+      validateProvider(normalized, apiKey);
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
       return {
@@ -108,7 +116,7 @@ export class ProviderService {
     }
 
     const endpoint = providerEndpoint(normalized);
-    const headers = providerHeaders(normalized, config.apiKey);
+    const headers = providerHeaders(normalized, apiKey);
     const body = providerBody(normalized);
     try {
       const response = await this.fetchImpl(endpoint, {
@@ -159,6 +167,35 @@ export class ProviderService {
       model: normalized.model,
       checks,
       ok: checks.every((check) => check.ok),
+    };
+  }
+
+  public async listModels(config: ProviderConfigWithSecret): Promise<ProviderModelsResult> {
+    const normalized = normalizeProvider(config);
+    const apiKey = config.apiKey === undefined
+      ? await this.options.secrets.get("provider.apiKey")
+      : config.apiKey;
+    validateProvider(normalized, apiKey);
+
+    let response: Response;
+    try {
+      response = await this.fetchImpl(providerModelsEndpoint(normalized), {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...providerHeaders(normalized, apiKey),
+        },
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (error) {
+      throw new Error(error instanceof Error ? error.message : String(error));
+    }
+
+    const body = await response.text();
+    if (!response.ok) throw new Error(describeProviderError(response.status, body));
+    return {
+      provider: normalized.kind,
+      models: parseProviderModels(body),
     };
   }
 
@@ -231,6 +268,12 @@ function providerEndpoint(config: ProviderConfig): string {
   return `${config.baseUrl?.replace(/\/$/, "")}/chat/completions`;
 }
 
+function providerModelsEndpoint(config: ProviderConfig): string {
+  const baseUrl = config.baseUrl?.replace(/\/$/, "") ?? "";
+  if (config.kind === "anthropic" && !baseUrl.endsWith("/v1")) return `${baseUrl}/v1/models`;
+  return `${baseUrl}/models`;
+}
+
 function providerHeaders(config: ProviderConfig, apiKey: string | undefined): Record<string, string> {
   if (config.kind === "anthropic") {
     return {
@@ -274,6 +317,52 @@ function describeProviderError(status: number, body: string): string {
   }
   if (detail.length > 240) detail = `${detail.slice(0, 237)}...`;
   return `Provider request failed (${status})${detail ? `: ${detail}` : "."}`;
+}
+
+function parseProviderModels(body: string): ProviderModelsResult["models"] {
+  if (!body.trim()) return [];
+  let value: unknown;
+  try {
+    value = JSON.parse(body);
+  } catch {
+    throw new Error("The provider returned invalid JSON from /models.");
+  }
+
+  const entries = Array.isArray(value)
+    ? value
+    : isRecord(value) && Array.isArray(value.data)
+      ? value.data
+      : isRecord(value) && Array.isArray(value.models)
+        ? value.models
+        : [];
+  const models = new Map<string, ProviderModelsResult["models"][number]>();
+  for (const entry of entries) {
+    const model = normalizeModelOption(entry);
+    if (model && !models.has(model.id)) models.set(model.id, model);
+  }
+  return [...models.values()];
+}
+
+function normalizeModelOption(value: unknown): ProviderModelsResult["models"][number] | undefined {
+  if (typeof value === "string") {
+    const id = value.trim();
+    return id ? { id } : undefined;
+  }
+  if (!isRecord(value)) return undefined;
+  const idValue = typeof value.id === "string" ? value.id : typeof value.name === "string" ? value.name : undefined;
+  const id = idValue?.trim();
+  if (!id) return undefined;
+  const nameValue = typeof value.name === "string"
+    ? value.name
+    : typeof value.display_name === "string"
+      ? value.display_name
+      : undefined;
+  const name = nameValue?.trim();
+  return name && name !== id ? { id, name } : { id };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function providerRuntimeConfig(config: ProviderConfig): PiProviderConfig {

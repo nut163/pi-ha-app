@@ -138,6 +138,11 @@ async function handleApi(
     writeJson(response, 200, await app.providers.test(config));
     return;
   }
+  if (method === "POST" && pathName === "/api/provider/models") {
+    const config = normalizeProviderBody(await readJsonBody(request));
+    writeJson(response, 200, await app.providers.listModels(config));
+    return;
+  }
   if (method === "POST" && pathName === "/api/onboarding/provider") {
     const config = normalizeProviderBody(await readJsonBody(request));
     const provider = await app.providers.save(config);

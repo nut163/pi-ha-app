@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { AppSettings, ConnectionStatus, ProviderConfigWithSecret } from "../../../src/core/types.js";
 import { api } from "../api";
+import { ProviderModelField } from "./ProviderModelField";
 
 interface ConnectionDraft {
   homeAssistantUrl: string;
@@ -25,10 +26,17 @@ export function SettingsPanel({
     token: "",
   });
   const [providerKey, setProviderKey] = useState("");
+  const [providerDraft, setProviderDraft] = useState<ProviderConfigWithSecret>(() => providerFromSettings(settings));
+  const [providerDirty, setProviderDirty] = useState(false);
+  const [providerTest, setProviderTest] = useState<Awaited<ReturnType<typeof api.testProvider>>>();
   const [statusMessage, setStatusMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => setDraft(settings), [settings]);
+  useEffect(() => {
+    setDraft(settings);
+    setProviderDraft(providerFromSettings(settings));
+    setProviderDirty(false);
+  }, [settings]);
   useEffect(() => {
     setConnectionDraft((current) => ({
       ...current,
@@ -51,14 +59,31 @@ export function SettingsPanel({
         retainSessionDays: draft.retainSessionDays,
         theme: draft.theme,
       });
-      if (draft.provider && providerKey) {
-        const config: ProviderConfigWithSecret = { ...draft.provider, apiKey: providerKey };
-        await api.saveProvider(config);
+      if (settings.provider || providerDirty || providerKey.trim()) {
+        await api.saveProvider(providerConfig(providerDraft, providerKey));
       }
       setProviderKey("");
       setConnectionDraft((current) => ({ ...current, mcpUrl: "", token: "" }));
       await onSaved();
       setStatusMessage("Settings saved securely.");
+    } catch (cause) {
+      setStatusMessage(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const updateProvider = (patch: Partial<ProviderConfigWithSecret>) => {
+    setProviderDraft((current) => ({ ...current, ...patch }));
+    setProviderDirty(true);
+    setProviderTest(undefined);
+  };
+
+  const testProvider = async () => {
+    setBusy(true);
+    setStatusMessage("");
+    try {
+      setProviderTest(await api.testProvider(providerConfig(providerDraft, providerKey)));
     } catch (cause) {
       setStatusMessage(cause instanceof Error ? cause.message : String(cause));
     } finally {
@@ -135,25 +160,19 @@ export function SettingsPanel({
               {draft.provider ? "Configured" : "Not configured"}
             </span>
           </div>
-          {draft.provider ? (
-            <>
-              <div className="provider-summary">
-                <strong>{draft.provider.displayName || draft.provider.kind}</strong>
-                <span>{draft.provider.model}</span>
-                <small>{draft.provider.baseUrl}</small>
-              </div>
-              <label>
-                Replace API key <span className="label-note">(optional)</span>
-                <input
-                  type="password"
-                  value={providerKey}
-                  onChange={(event) => setProviderKey(event.target.value)}
-                  placeholder="Leave blank to keep current key"
-                  autoComplete="off"
-                />
-              </label>
-            </>
-          ) : <p className="muted">Return to onboarding to configure an AI provider.</p>}
+          <div className="provider-settings-grid">
+            <label>Provider<select value={providerDraft.kind} onChange={(event) => {
+              const kind = event.target.value as ProviderConfigWithSecret["kind"];
+              updateProvider({ kind, baseUrl: defaultProviderUrl(kind) });
+            }}><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option><option value="openai-compatible">OpenAI-compatible</option><option value="local">Local / Ollama</option></select></label>
+            <label>Display name<input value={providerDraft.displayName ?? ""} onChange={(event) => updateProvider({ displayName: event.target.value })} placeholder="Optional friendly name" /></label>
+            <ProviderModelField provider={providerDraft} apiKey={providerKey} onChange={(model) => updateProvider({ model })} />
+            <label className="full">Base URL<input type="url" value={providerDraft.baseUrl ?? ""} onChange={(event) => updateProvider({ baseUrl: event.target.value })} placeholder="https://api.example.com/v1" /></label>
+            <label className="full">API key <span className="label-note">(encrypted; leave blank to keep current)</span><input type="password" value={providerKey} onChange={(event) => { setProviderKey(event.target.value); setProviderDirty(true); setProviderTest(undefined); }} placeholder={settings.provider ? "Leave blank to keep current key" : "Optional for local or keyless gateways"} autoComplete="new-password" /></label>
+            <label className="check-label full"><input type="checkbox" checked={providerDraft.supportsReasoning === true} onChange={(event) => updateProvider({ supportsReasoning: event.target.checked })} /> Model supports extended reasoning</label>
+          </div>
+          {providerTest && <div className={`provider-result compact ${providerTest.ok ? "ok" : "bad"}`}><strong>{providerTest.ok ? "Provider ready" : "Provider needs attention"}</strong>{providerTest.checks.map((check) => <div key={check.key}><span>{check.ok ? "✓" : "!"}</span>{check.label}<small>{check.detail}</small></div>)}</div>}
+          <div className="provider-actions"><button className="secondary-button" type="button" onClick={() => void testProvider()} disabled={busy}>{busy ? "Testing…" : "Test provider"}</button></div>
         </div>
 
         <div className="panel-card settings-card">
@@ -220,4 +239,33 @@ export function SettingsPanel({
       </div>
     </section>
   );
+}
+
+function providerFromSettings(settings: AppSettings): ProviderConfigWithSecret {
+  return {
+    kind: settings.provider?.kind ?? "openai-compatible",
+    model: settings.provider?.model ?? "llama3.2",
+    baseUrl: settings.provider?.baseUrl ?? "http://localhost:11434/v1",
+    displayName: settings.provider?.displayName ?? "",
+    supportsReasoning: settings.provider?.supportsReasoning ?? false,
+    temperature: settings.provider?.temperature,
+  };
+}
+
+function providerConfig(draft: ProviderConfigWithSecret, apiKey: string): ProviderConfigWithSecret {
+  return {
+    kind: draft.kind,
+    model: draft.model,
+    baseUrl: draft.baseUrl,
+    displayName: draft.displayName,
+    supportsReasoning: draft.supportsReasoning,
+    ...(draft.temperature === undefined ? {} : { temperature: draft.temperature }),
+    ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
+  };
+}
+
+function defaultProviderUrl(kind: ProviderConfigWithSecret["kind"]): string {
+  if (kind === "anthropic") return "https://api.anthropic.com";
+  if (kind === "openai") return "https://api.openai.com/v1";
+  return "http://localhost:11434/v1";
 }

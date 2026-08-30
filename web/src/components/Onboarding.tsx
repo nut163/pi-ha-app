@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 
 import type { AppBootstrap, HealthCheck, ProviderConfigWithSecret } from "../../../src/core/types.js";
 import { api } from "../api";
+import { ProviderModelField } from "./ProviderModelField";
 
 interface OnboardingProps {
   bootstrap: AppBootstrap;
@@ -23,7 +24,6 @@ export function Onboarding({ bootstrap, onComplete }: OnboardingProps) {
     baseUrl: bootstrap.settings.provider?.baseUrl ?? "http://localhost:11434/v1",
     displayName: bootstrap.settings.provider?.displayName ?? "",
     supportsReasoning: bootstrap.settings.provider?.supportsReasoning ?? false,
-    apiKey: "",
   });
   const [autonomy, setAutonomy] = useState(bootstrap.settings.autonomy);
   const [backups, setBackups] = useState(bootstrap.settings.automaticBackups);
@@ -47,7 +47,10 @@ export function Onboarding({ bootstrap, onComplete }: OnboardingProps) {
     try {
       const result = await api.testProvider(provider);
       setProviderTest(result);
-      if (result.ok) setStep(3);
+      if (result.ok) {
+        await api.saveProvider(provider);
+        setStep(3);
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally { setBusy(false); }
@@ -117,7 +120,7 @@ export function Onboarding({ bootstrap, onComplete }: OnboardingProps) {
           <p className="lede">Pi keeps your provider boundary explicit. You can use a hosted provider, an OpenAI-compatible gateway, or a local model.</p>
           <div className="form-grid">
             <label>Provider<select value={provider.kind} onChange={(event) => setProvider({ ...provider, kind: event.target.value as ProviderConfigWithSecret["kind"], baseUrl: event.target.value === "anthropic" ? "https://api.anthropic.com" : event.target.value === "openai" ? "https://api.openai.com/v1" : "http://localhost:11434/v1" })}><option value="anthropic">Anthropic</option><option value="openai">OpenAI</option><option value="openai-compatible">OpenAI-compatible</option><option value="local">Local / Ollama</option></select></label>
-            <label>Model<input value={provider.model} onChange={(event) => setProvider({ ...provider, model: event.target.value })} placeholder="claude-sonnet-4-20250514" /></label>
+            <ProviderModelField provider={provider} apiKey={provider.apiKey} onChange={(model) => setProvider({ ...provider, model })} />
             <label className="full">Base URL<input value={provider.baseUrl ?? ""} onChange={(event) => setProvider({ ...provider, baseUrl: event.target.value })} placeholder="https://api.example.com/v1" /></label>
             <label className="full">API key <span className="label-note">(stored encrypted; optional for local or keyless gateways)</span><input type="password" value={provider.apiKey ?? ""} onChange={(event) => setProvider({ ...provider, apiKey: event.target.value })} placeholder={provider.kind === "local" || provider.kind === "openai-compatible" ? "Optional — leave blank if not required" : "Paste a key"} autoComplete="off" /></label>
             <label className="check-label full"><input type="checkbox" checked={provider.supportsReasoning === true} onChange={(event) => setProvider({ ...provider, supportsReasoning: event.target.checked })} /> Model supports extended reasoning</label>

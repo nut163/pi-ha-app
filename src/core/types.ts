@@ -189,6 +189,16 @@ export interface ProviderTestResult {
   ok: boolean;
 }
 
+export interface ProviderModelOption {
+  id: string;
+  name?: string;
+}
+
+export interface ProviderModelsResult {
+  provider: ProviderKind;
+  models: ProviderModelOption[];
+}
+
 export interface ConnectionStatus {
   homeAssistantUrl?: string;
   tokenConfigured: boolean;

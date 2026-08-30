@@ -14,6 +14,10 @@ checks: endpoint reachability, model acceptance, and a non-empty streaming
 response. A successful test is recommended but not required for saving a profile
 because local gateways may be offline during setup.
 
+Onboarding and Settings query the provider's `/models` endpoint through the App
+server and use the returned IDs as model-field suggestions. Model IDs remain
+manually editable when a gateway does not expose model discovery.
+
 Pi's `ModelRuntime` receives a single process-local provider registration. The
 key is supplied through an environment interpolation that is populated only by
 the server after decrypting `/data/secrets.enc.json`; it is not stored in
