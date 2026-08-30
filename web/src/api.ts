@@ -23,8 +23,12 @@ export type StreamEvent =
   | { type: "error"; error: string }
   | { type: "complete" };
 
+function relativeUrl(url: string): string {
+  return url.startsWith("/") ? `.${url}` : url;
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, {
+  const response = await fetch(relativeUrl(url), {
     ...init,
     headers: { Accept: "application/json", ...(init?.body ? { "Content-Type": "application/json" } : {}), ...init?.headers },
   });
@@ -60,7 +64,7 @@ export const api = {
   audit: (limit = 200) => request<{ entries: AuditEntry[] }>(`/api/audit?limit=${limit}`),
   tools: (query = "") => request<{ tools: ToolDescriptor[] }>(`/api/tools${query ? `?query=${encodeURIComponent(query)}` : ""}`),
   streamMessage: async (id: string, message: string, onEvent: (event: StreamEvent) => void): Promise<void> => {
-    const response = await fetch(`/api/sessions/${encodeURIComponent(id)}/messages`, {
+    const response = await fetch(relativeUrl(`/api/sessions/${encodeURIComponent(id)}/messages`), {
       method: "POST",
       headers: { Accept: "text/event-stream", "Content-Type": "application/json" },
       body: JSON.stringify({ message }),
