@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Fix asset and API URLs when the App is served through Home Assistant Ingress.
+
 ## 0.1.0
 
 - Initial Pi Home Agent Home Assistant App implementation.
