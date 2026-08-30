@@ -2,8 +2,8 @@ name: Pi Home Agent
 version: "0.1.0"
 slug: pi_home_agent
 description: A safe, coding-agent interface for administering Home Assistant.
-url: https://github.com/troydev/pi-ha-app
-image: ghcr.io/troydev/pi-home-agent
+url: https://github.com/nut163/pi-ha-app
+image: ghcr.io/nut163/pi-home-agent
 arch:
   - amd64
   - aarch64
