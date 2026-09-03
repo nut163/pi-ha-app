@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Bring tool activity and approval prompts into the chat timeline.
+- Refresh the health and settings views with compact, responsive layouts.
+
 ## 0.1.2
 
 - Add provider model configuration and provider-specific model suggestions in onboarding and settings.
