@@ -1,0 +1,160 @@
+- generic [ref=f1e7]:
+  - banner [ref=f1e8]:
+    - generic [ref=f1e9]:
+      - generic [ref=f1e10]: π
+      - generic [ref=f1e11]:
+        - strong [ref=f1e12]: Pi Home Agent
+        - generic [ref=f1e13]: Home Assistant control plane
+    - generic [ref=f1e14]:
+      - text: Agent ready
+      - generic [ref=f1e17]: Home Assistant
+  - generic [ref=f1e18]:
+    - complementary [ref=f1e19]:
+      - generic [ref=f1e20]:
+        - generic [ref=f1e21]: WORKSPACE
+        - strong [ref=f1e22]: Home Assistant
+        - generic [ref=f1e23]: Capability discovery
+      - navigation [ref=f1e24]:
+        - button "⌂ Command center" [ref=f1e25] [cursor=pointer]:
+          - generic [ref=f1e26]: ⌂
+          - text: Command center
+        - button "◇ Changes & audit" [ref=f1e27] [cursor=pointer]:
+          - generic [ref=f1e28]: ◇
+          - text: Changes & audit
+        - button "◉ Health & capabilities" [ref=f1e29] [cursor=pointer]:
+          - generic [ref=f1e30]: ◉
+          - text: Health & capabilities
+        - button "⚙ Settings" [active] [ref=f1e31] [cursor=pointer]:
+          - generic [ref=f1e32]: ⚙
+          - text: Settings
+      - generic [ref=f1e34]:
+        - generic [ref=f1e35]: SESSIONS
+        - button "New session" [ref=f1e36] [cursor=pointer]: ＋
+      - generic [ref=f1e37]:
+        - button "New Home Assistant session 4h" [ref=f1e38] [cursor=pointer]:
+          - generic [ref=f1e39]: New Home Assistant session
+          - generic [ref=f1e40]: 4h
+        - button "New Home Assistant session 4h" [ref=f1e41] [cursor=pointer]:
+          - generic [ref=f1e42]: New Home Assistant session
+          - generic [ref=f1e43]: 4h
+        - button "New Home Assistant session 8h" [ref=f1e44] [cursor=pointer]:
+          - generic [ref=f1e45]: New Home Assistant session
+          - generic [ref=f1e46]: 8h
+      - generic [ref=f1e48]:
+        - generic [ref=f1e49]: ⌁
+        - generic [ref=f1e50]:
+          - strong [ref=f1e51]: Protected by Ingress
+          - generic [ref=f1e52]: Identity-aware access
+    - main [ref=f1e53]:
+      - generic [ref=f1e372]:
+        - generic [ref=f1e373]:
+          - generic [ref=f1e374]:
+            - text: CONTROL PLANE
+            - heading "Settings" [level=2] [ref=f1e375]
+            - paragraph [ref=f1e376]: Adjust the agent’s working style and Home Assistant connections.
+          - button "Save settings →" [ref=f1e377] [cursor=pointer]:
+            - text: Save settings
+            - generic [ref=f1e378]: →
+        - generic [ref=f1e379]:
+          - generic [ref=f1e380]:
+            - generic [ref=f1e381]:
+              - generic [ref=f1e382]:
+                - text: HOME ASSISTANT ACCESS
+                - heading "Core & MCP connection" [level=3] [ref=f1e383]
+              - generic [ref=f1e384]: Token configured
+            - generic [ref=f1e385]:
+              - text: Home Assistant URL
+              - textbox "Home Assistant URL" [ref=f1e386]:
+                - /placeholder: https://homeassistant.example.com
+                - text: https://minoa.party
+            - generic [ref=f1e387]:
+              - text: Long-lived access token
+              - generic [ref=f1e388]: (encrypted; leave blank to keep current)
+              - textbox "Long-lived access token (encrypted; leave blank to keep current)" [ref=f1e389]:
+                - /placeholder: Leave blank to keep current token
+            - generic [ref=f1e390]:
+              - text: MCP endpoint
+              - generic [ref=f1e391]: (encrypted; leave blank to keep current)
+              - textbox "MCP endpoint (encrypted; leave blank to keep current)" [ref=f1e392]:
+                - /placeholder: Configured — enter a new endpoint to replace it
+            - paragraph [ref=f1e393]: The native Home Assistant MCP endpoint uses the same Bearer token. Supervisor-only APIs become available when Pi runs inside Home Assistant.
+          - generic [ref=f1e394]:
+            - generic [ref=f1e395]:
+              - generic [ref=f1e396]:
+                - text: AI PROVIDER
+                - heading "Model connection" [level=3] [ref=f1e397]
+              - generic [ref=f1e398]: Configured
+            - generic [ref=f1e399]:
+              - generic [ref=f1e400]:
+                - text: Provider
+                - combobox "Provider" [ref=f1e401]:
+                  - option "Anthropic"
+                  - option "OpenAI"
+                  - option "OpenAI-compatible" [selected]
+                  - option "Local / Ollama"
+              - generic [ref=f1e402]:
+                - text: Display name
+                - textbox "Display name" [ref=f1e403]:
+                  - /placeholder: Optional friendly name
+                  - text: Qwen gateway
+              - generic [ref=f1e404]:
+                - generic [ref=f1e405]: Model
+                - combobox "Model" [ref=f1e406]:
+                  - option "qwen" [selected]
+                  - option "nomic-embed-text-v1.5"
+                - generic [ref=f1e407]: 2 available models
+              - generic [ref=f1e408]:
+                - text: Base URL
+                - textbox "Base URL" [ref=f1e409]:
+                  - /placeholder: https://api.example.com/v1
+                  - text: http://100.74.19.95:4000/v1
+              - generic [ref=f1e410]:
+                - text: API key
+                - generic [ref=f1e411]: (encrypted; leave blank to keep current)
+                - textbox "API key (encrypted; leave blank to keep current)" [ref=f1e412]:
+                  - /placeholder: Leave blank to keep current key
+              - generic [ref=f1e413]:
+                - checkbox "Model supports extended reasoning" [ref=f1e414]
+                - text: Model supports extended reasoning
+            - button "Test provider" [ref=f1e416] [cursor=pointer]
+          - generic [ref=f1e417]:
+            - generic [ref=f1e419]:
+              - text: AUTONOMY
+              - heading "How Pi proceeds" [level=3] [ref=f1e420]
+            - generic [ref=f1e421]:
+              - text: Default mode
+              - combobox "Default mode" [ref=f1e422]:
+                - option "Guided — ask before changes" [selected]
+                - option "Balanced — ask before medium impact"
+                - option "Autonomous — confirm destructive actions"
+            - generic [ref=f1e423]:
+              - generic [ref=f1e424]: "!"
+              - paragraph [ref=f1e425]: High-risk and destructive operations always require explicit confirmation.
+          - generic [ref=f1e426]:
+            - generic [ref=f1e428]:
+              - text: RECOVERY
+              - heading "Checkpoints & retention" [level=3] [ref=f1e429]
+            - generic [ref=f1e430]:
+              - text: Automatic checkpoints
+              - combobox "Automatic checkpoints" [ref=f1e431]:
+                - option "Before meaningful changes" [selected]
+                - option "Before every file change"
+                - option "Local checkpoints only"
+            - generic [ref=f1e432]:
+              - text: Keep session history
+              - combobox "Keep session history" [ref=f1e433]:
+                - option "30 days"
+                - option "90 days" [selected]
+                - option "1 year"
+                - option "Keep until deleted"
+          - generic [ref=f1e434]:
+            - generic [ref=f1e436]:
+              - text: APPEARANCE
+              - heading "Interface" [level=3] [ref=f1e437]
+            - generic [ref=f1e438]:
+              - text: Theme
+              - combobox "Theme" [ref=f1e439]:
+                - option "System"
+                - option "Light" [selected]
+                - option "Dark"
+            - paragraph [ref=f1e440]: The UI is served through Home Assistant Ingress and never returns provider or Home Assistant credentials to the browser.

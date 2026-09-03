@@ -121,16 +121,16 @@ export class PiAgentService {
         autonomy: settings.autonomy,
       });
       await this.appendMessage(managed, "user", trimmed);
-      this.emit(managed, {
-        type: "activity",
-        event: this.activity.emit({
-          sessionId,
-          kind: "status",
-          title: "Thinking",
-          detail: "Pi is interpreting the request.",
-          status: "running",
-        }),
-      }, listener);
+      const unsubscribeActivity = this.activity.subscribe(sessionId, (event) => {
+        this.emit(managed, { type: "activity", event }, listener);
+      });
+      this.activity.emit({
+        sessionId,
+        kind: "status",
+        title: "Thinking",
+        detail: "Pi is interpreting the request.",
+        status: "running",
+      });
 
       let responseText = "";
       const unsubscribe = managed.session.subscribe((event) => {
@@ -155,6 +155,7 @@ export class PiAgentService {
         throw error;
       } finally {
         unsubscribe();
+        unsubscribeActivity();
         await this.saveRecord(managed.record);
       }
     });
@@ -304,41 +305,29 @@ export class PiAgentService {
       return messageText;
     }
     if (event.type === "tool_execution_start") {
-      this.emit(managed, {
-        type: "activity",
-        event: this.activity.emit({
-          sessionId,
-          kind: "tool-execution",
-          title: `Using ${event.toolName}`,
-          detail: "The agent is executing a capability.",
-          status: "running",
-          target: event.toolName,
-          metadata: { toolCallId: event.toolCallId, arguments: activityPayload(event.args) },
-        }),
-      }, listener);
+      this.activity.emit({
+        sessionId,
+        kind: "tool-execution",
+        title: `Using ${event.toolName}`,
+        detail: "The agent is executing a capability.",
+        status: "running",
+        target: event.toolName,
+        metadata: { toolCallId: event.toolCallId, arguments: activityPayload(event.args) },
+      });
     } else if (event.type === "tool_execution_end") {
-      this.emit(managed, {
-        type: "activity",
-        event: this.activity.emit({
-          sessionId,
-          kind: "tool-execution",
-          title: `${event.toolName} ${event.isError ? "failed" : "completed"}`,
-          detail: event.isError ? "The tool returned an error." : "The tool returned successfully.",
-          status: event.isError ? "error" : "success",
-          target: event.toolName,
-          metadata: { toolCallId: event.toolCallId, response: activityPayload(event.result) },
-        }),
-      }, listener);
+      this.activity.emit({
+        sessionId,
+        kind: "tool-execution",
+        title: `${event.toolName} ${event.isError ? "failed" : "completed"}`,
+        detail: event.isError ? "The tool returned an error." : "The tool returned successfully.",
+        status: event.isError ? "error" : "success",
+        target: event.toolName,
+        metadata: { toolCallId: event.toolCallId, response: activityPayload(event.result) },
+      });
     } else if (event.type === "agent_start") {
-      this.emit(managed, {
-        type: "activity",
-        event: this.activity.emit({ sessionId, kind: "status", title: "Agent started", status: "running" }),
-      }, listener);
+      this.activity.emit({ sessionId, kind: "status", title: "Agent started", status: "running" });
     } else if (event.type === "agent_end" || event.type === "agent_settled") {
-      this.emit(managed, {
-        type: "activity",
-        event: this.activity.emit({ sessionId, kind: "status", title: "Agent settled", status: "success" }),
-      }, listener);
+      this.activity.emit({ sessionId, kind: "status", title: "Agent settled", status: "success" });
     }
     return previousText;
   }

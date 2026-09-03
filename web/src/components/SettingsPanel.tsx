@@ -106,7 +106,7 @@ export function SettingsPanel({
 
       {statusMessage && <div className={`callout ${statusMessage.includes("saved") ? "success" : "error"}`}>{statusMessage}</div>}
 
-      <div className="settings-grid">
+      <div className="settings-form">
         <div className="panel-card settings-card">
           <div className="panel-heading">
             <div>
